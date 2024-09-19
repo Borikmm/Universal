@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: BaseFactory
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyesFactory
+  _warrior: {fileID: 3394868173188135963, guid: 8583951620311e04b8ddb9dcf89c0bf6, type: 3}
+  _archer: {fileID: 2989656008686397730, guid: 4c36840e2725ee74e8a6518f2f95721b, type: 3}
+  _killer: {fileID: 8962511603676736248, guid: 4ba1fbc895fadea46ab9a1d1506ebb0f, type: 3}
