@@ -6,14 +6,21 @@ using System.Threading.Tasks;
 using UnityEngine.Rendering.Universal;
 
 
-public abstract class BaseLightingObject : BaseEntity
+public abstract class BaseLightingObject : BaseEntity, ILightSource
 {
     protected Light2D _light;
+    public Light2D Light { get { return _light; } set { _light = value; } }
 
     protected override void Start()
     {
-        base.Start();
         _light = GetComponentInChildren<Light2D>();
+        base.Start();
+    }
+
+    protected override void DestroyThisObject()
+    {
+        BootStrap.GameManager.LightingPoints.RemoveElement(_light);
+        base.DestroyThisObject();
     }
 }
 

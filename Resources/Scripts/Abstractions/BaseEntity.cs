@@ -1,99 +1,56 @@
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
-[RequireComponent(typeof(Collider2D))]
-[RequireComponent(typeof(SpriteRenderer))]
-public abstract class BaseEntity : BaseXPManager, ICollisionAction
+public abstract class BaseEntity : BaseXPManager
 {
-    // Finite state machine
-    protected StateMachine _fsm;
-
-    [Header("Main entity parametres:")]
-    [SerializeField] protected bool _isActive = true;
-
-    [SerializeField] protected string _stateNow = "base";
-    [Header("-------------")]
-
     // Must have parametres
     protected SpriteRenderer _spriteRenderer;
-    protected Collider2D _colider;
-    protected ClassEntity _fraction;
-    public ClassEntity Fraction => _fraction;
+    [SerializeField] protected Collider2D _collisionColider;
+    protected EntityFraction _fraction;
+    public EntityFraction Fraction => _fraction;
 
-    private void ChangeState(string stateNow)
+    public Collider2D Collider => _collisionColider;
+
+    // Light Mechanic
+/*
+    private int _inTheLight = 0;
+    public int InTheLight
     {
-        _stateNow = stateNow;
-    }
+        get { return _inTheLight; }
+        set 
+        {
+            _inTheLight = value;
+        }
+    }*/
 
-    /// <summary>
-    /// Init fsm
-    /// </summary>
-    protected virtual void FSMInit()
-    {
-        _fsm = new StateMachine();
-        _fsm.AChangeState += ChangeState;
-    }
-
-    protected virtual void Start()
+    protected override void Start()
     {
         _spriteRenderer = GetComponent<SpriteRenderer>();
-        _colider = GetComponent<Collider2D>();
+        if ( _spriteRenderer == null )
+        {
+            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        }
+
+        CheckThisObject();
     }
 
 
-    private void OnDestroy()
+
+    private void CheckThisObject()
     {
-        if (_fsm != null)
+        if (this is IObjWithLightingCollider)
         {
-            _fsm.AChangeState -= ChangeState;
+            ((IObjWithLightingCollider)this).InitLightingCollider();
         }
-        
+
+        if (this is BaseCube cube)
+        {
+            GetComponentInChildren<CubeColliderCollision>().Init(cube);
+        }
     }
 
     public void RecolorThis(Color color)
     {
         _spriteRenderer.color = color; 
-    }
-
-    /// <summary>
-    /// Update fsm
-    /// </summary>
-    protected virtual void Update()
-    {
-        if (_fsm != null)
-        {
-            _fsm.Update();
-        }
-    }
-
-
-    protected virtual void OnCollisionEnter2D(Collision2D collision)
-    {
-        var obj = collision.gameObject.GetComponent<BaseEntity>();
-        if (obj != null)
-        {
-            switch (obj.Fraction)
-            {
-                case ClassEntity.Enemy:
-                    CollisionWithEnemy(collision.gameObject);
-                    break;
-                case ClassEntity.Player:
-                    CollisionWithPlayer(collision.gameObject);
-                    break;
-            }
-        }
-    }
-
-    public virtual void CollisionWithPlayer(GameObject gameObject)
-    {
-    }
-
-    public virtual void CollisionWithEnemy(GameObject gameObject)
-    {
-    }
-
-
-    protected virtual void DestroyThisObject()
-    {
-        Destroy(gameObject);
     }
 }

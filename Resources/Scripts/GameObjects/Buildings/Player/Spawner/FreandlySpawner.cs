@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FreandlySpawner : BaseBuilding
+public class FreandlySpawner : BaseLightingBuilding, IObjWithLightingCollider
 {
     [SerializeField] private FreandlyCubeFactory _factory;
     [SerializeField] Transform _spawnPosition;
@@ -11,6 +11,9 @@ public class FreandlySpawner : BaseBuilding
     [SerializeField] private float _spawnTime;
     private float _spawnTimeRemain;
 
+
+    protected Light2DCollision _collisionScript;
+    public Light2DCollision CollisionScript { get { return _collisionScript; } set { _collisionScript = value; } }
     private void Spawn()
     {
         var spawnObject = _factory.Get();
@@ -23,7 +26,7 @@ public class FreandlySpawner : BaseBuilding
         base.Start();
         ResetTime();
 
-        _fraction = ClassEntity.Player;
+        _fraction = EntityFraction.Player;
 
     }
 
@@ -47,15 +50,15 @@ public class FreandlySpawner : BaseBuilding
         }
     }
 
-    protected override void DestroyThisObject()
-    {
-        BootStrap.GameManager.RemoveLightingPoint(_light);
-        base.DestroyThisObject();
-    }
-
 
     protected override void DeadWhenZeroXP()
     {
         DestroyThisObject();
+    }
+
+    public void InitLightingCollider()
+    {
+        _collisionScript = GetComponentInChildren<Light2DCollision>();
+        if (_collisionScript != null) _collisionScript.Init(Light);
     }
 }

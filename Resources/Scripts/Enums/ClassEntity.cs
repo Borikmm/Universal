@@ -1,4 +1,4 @@
-﻿public enum ClassEntity
+﻿public enum EntityFraction
 {
     Enemy,
     Player

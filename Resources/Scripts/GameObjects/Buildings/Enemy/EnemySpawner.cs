@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class EnemySpawner : BaseBuilding
+public class EnemySpawner : BaseLightingBuilding
 {
     [SerializeField] private FreandlyCubeFactory _factory;
     [SerializeField] Transform _spawnPosition;

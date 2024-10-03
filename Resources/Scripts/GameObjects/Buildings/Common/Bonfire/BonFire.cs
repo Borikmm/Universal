@@ -1,23 +1,30 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class BonFire : BaseBuilding
+public abstract class BonFire : BaseLightingBuilding, IObjWithLightingCollider
 {
+
+    protected Light2DCollision _collisionScript;
+
+    public Light2DCollision CollisionScript { get { return _collisionScript; } set { _collisionScript = value; } }
+
+
     [Header("--------------")]
     [Header("Start Parametres")]
-    [SerializeField] uint startMinInnerRadiusStart;
-    [SerializeField] uint startOutherRadiusStart;
-    [SerializeField] bool _pingPong = true;
+    [SerializeField] protected uint startMinInnerRadiusStart;
+    [SerializeField] protected uint startOutherRadiusStart;
+    [SerializeField] protected bool _pingPong = true;
 
 
     [Header("--------------")]
     [Header("Speed attenuation")]
-    [SerializeField] private float _valueAttenuation = 1f;//
+    [SerializeField] protected float _valueAttenuation = 1f;//
 
-    [SerializeField] private float _colChangesAttenuationInOneSeconds = 1f;
+    [SerializeField] protected float _colChangesAttenuationInOneSeconds = 1f;
 
-    private bool _canChange = true;
+    protected bool _canChange = true;
 
     [Header("--------------")]
     [Header("Inner circle changes")]
@@ -27,15 +34,12 @@ public abstract class BonFire : BaseBuilding
 
     protected CircleCollider2D _theDarkCircleCollider;
 
-    private float InnerDifference => _light.pointLightOuterRadius / _light.pointLightInnerRadius;
-    private float IntensivityDifference => _light.pointLightOuterRadius / _light.intensity;
-
-
-
+    protected float InnerDifference => _light.pointLightOuterRadius / _light.pointLightInnerRadius;
+    protected float IntensivityDifference => _light.pointLightOuterRadius / _light.intensity;
 
 
     // 1 power == 10% 
-    public void CubeAttenuation(int power)
+    public virtual void CubeAttenuation(int power)
     {
         float step = startOutherRadiusStart / 10 * power;
         ChangeIntensivity(step / IntensivityDifference);
@@ -48,7 +52,7 @@ public abstract class BonFire : BaseBuilding
         if (_theDarkCircleCollider != null) ChangesTheDarkColidersRadius(step);
     }
 
-    private void Attenuation(bool direction)
+    protected virtual void Attenuation(bool direction)
     {
         float attenuationValue = direction ? _valueAttenuation : -_valueAttenuation;
 
@@ -64,12 +68,12 @@ public abstract class BonFire : BaseBuilding
     }
 
 
-    private void ChangeMinInnerRadius(float value)
+    protected void ChangeMinInnerRadius(float value)
     {
         minInnerRadius += value;
     }
 
-    private void ChangeMaxInnerRadius(float value)
+    protected void ChangeMaxInnerRadius(float value)
     {
         maxInnerRadius += value;
     }
@@ -85,7 +89,7 @@ public abstract class BonFire : BaseBuilding
         return (_light.intensity > 0 && _isActive && _light.pointLightOuterRadius > 0) || _valueAttenuation < 0;
     }
 
-    private void ChangeIntensivity(float value)
+    protected void ChangeIntensivity(float value)
     {
         if (_light != null) 
         {
@@ -97,7 +101,7 @@ public abstract class BonFire : BaseBuilding
         }
     }
 
-    private void ChangeOuterRadius(float value)
+    protected void ChangeOuterRadius(float value)
     {
         if (_light != null)
         {
@@ -110,7 +114,7 @@ public abstract class BonFire : BaseBuilding
     }
 
 
-    private void ChangeInnerRadius(float value)
+    protected void ChangeInnerRadius(float value)
     {
         if (_light != null)
         {
@@ -137,8 +141,10 @@ public abstract class BonFire : BaseBuilding
 
         _theDarkCircleCollider = GetComponentInChildren<CircleCollider2D>();
         if (_theDarkCircleCollider != null) _theDarkCircleCollider.radius = startOutherRadiusStart;
-
     }
+
+
+
 
     protected override void Update()
     {
@@ -166,7 +172,7 @@ public abstract class BonFire : BaseBuilding
         }
     }
 
-    private IEnumerator AttenuationProcess()
+    protected IEnumerator AttenuationProcess()
     {
         _canChange = false;
         yield return new WaitForSeconds(1 / _colChangesAttenuationInOneSeconds);
@@ -177,8 +183,13 @@ public abstract class BonFire : BaseBuilding
 
     protected override void DestroyThisObject()
     {
-        BootStrap.GameManager.RemoveLightingPoint(_light);
+        BootStrap.GameManager.LightingPoints.RemoveElement(_light);
         base.DestroyThisObject();
     }
 
+    public virtual void InitLightingCollider()
+    {
+        _collisionScript = GetComponentInChildren<Light2DCollision>();
+        if (_collisionScript != null) _collisionScript.Init(Light);
+    }
 }

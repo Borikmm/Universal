@@ -2,40 +2,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
+
+/// <summary>
+/// class who check cubes in light or dark zone and react this
+/// </summary>
 public abstract class Light2DCollision: MonoBehaviour
 {
 
+    protected Light2D _light;
+
+
+    public void Init(Light2D light)
+    {
+        _light = light;
+    }
+
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
-
-        if (collision.gameObject.layer == 6)
-        {
-            var obj = collision.gameObject.GetComponent<BaseCube>();
-            if (obj.Fraction != ClassEntity.Player) return;
-            //Debug.Log($"Обьект не будет уничтожен {collision.name}!");
-            if (obj.InTheLight) obj.AdditionLightZone = true;
-            obj.InTheLight = true;
-        }
-
-
-        
     }
 
     protected virtual void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.layer == 6)
-        {
-            var obj = collision.gameObject.GetComponent<BaseCube>();
-            if (obj.Fraction != ClassEntity.Player) return;
-            //Debug.Log($"Через {TheDarkGlobalMechanic.DestroyTime} будет уничтожен {collision.name}!");
-            if (obj.AdditionLightZone)
-            {
-                obj.AdditionLightZone = false;
-                return;
-            }
-            obj.InTheLight = false;
-        }
     }
 
 

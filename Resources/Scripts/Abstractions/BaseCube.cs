@@ -2,46 +2,71 @@ using Patterns.FSM;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.EventSystems.EventTrigger;
-
+using UnityEngine.Rendering.Universal;
 //[RequireComponent(typeof(NavMeshAgent))]
-public abstract class BaseCube : BaseEntity
+public abstract class BaseCube : BaseEntity, IMovable, ILightedEntity, ICollisionAction
 {
-    // Destroyed process in the dark 
-    protected bool _destroyedProcess;
-    protected Coroutine _destroyedCoroutine;
-    public bool InTheLight;
-    public bool AdditionLightZone;
-    //
+    [Header("Cube parametres: ")]
 
-    public bool _goToInfinity = false;
+    [SerializeField] protected float _speed = 1f;
 
-    protected NavMeshAgent _agent;
-    [SerializeField] private float _speed = 1f;
+    public List<Light2D> _inTheLight = new();
 
+    protected bool _delObjFromWall = false;
 
+    public float Speed { get { return _speed; } set { _speed = value; } }
 
+    public List<Light2D> InTheLightList { get {return _inTheLight; } set { _inTheLight = value; } }
+
+    public bool DelObjFromWall { get {return _delObjFromWall; } set { _delObjFromWall = value; } }
 
     protected int _power;
+    protected NavMeshAgent _agent;
 
-    public void GoTo()
+    // Collision mechanic
+
+    public virtual void CollisionWithPlayer(GameObject gameObject)
     {
+    }
 
-        var state = _fsm.GetState<GoToTargetState>();
-        state.Speed = _speed;
-        state.Target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        _fsm.EnterIn(state);
-        _goToInfinity = true;
+    public virtual void CollisionWithEnemy(GameObject gameObject)
+    {
+    }
+    ///
+
+    public virtual void ExitToDarkWall(Light2D light) { }
+
+    public virtual void EnterToDarkWall(Light2D light) { }
+
+
+    public virtual void WhatDoWhenEnterInTheLight()
+    {
+    }
+
+    public virtual void WhatDoWhenExitFromTheLight()
+    {
     }
 
 
-    public void StopGoTo()
+
+    public virtual void GoTo(Transform target)
     {
-        _goToInfinity = false;
+        
     }
+
+    public virtual void GoTo(Vector3 target)
+    {
+
+    }
+
+    public virtual void Stop()
+    {
+        
+    }
+
+
 
     protected override void Start()
     {
@@ -75,7 +100,7 @@ public abstract class BaseCube : BaseEntity
         base.Update();
         ResetRotationAndPosY();
         DarkChecker();
-        GoToInfinity();
+
     }
 
 
@@ -88,42 +113,22 @@ public abstract class BaseCube : BaseEntity
         transform.position = new Vector3(transform.position.x, transform.position.y, 0);
     }
 
-    protected virtual void WhatDoWhenEnterInTheLight()
-    {
-
-    }
-
-    protected virtual void WhatDoWhenExitFromTheLight()
-    {
-
-    }
-
-
     protected override void DestroyThisObject()
     {
-        BootStrap.PlayerInput.SelectingService.RemoveSelectedObject(gameObject);
+        BootStrap.PlayerInput.SelectingService.RemoveSelectedObject(_collisionColider);
         base.DestroyThisObject();
     }
 
     private void DarkChecker()
     {
         // Destroyed checker
-        if (InTheLight && _destroyedProcess)
+        if (InTheLightList.Count > 0)
         {
             WhatDoWhenEnterInTheLight();
         }
-        if (!InTheLight && !_destroyedProcess)
+        if (InTheLightList.Count <= 0)
         {
             WhatDoWhenExitFromTheLight();
-        }
-    }
-
-    private void GoToInfinity()
-    {
-        if (_goToInfinity)
-        {
-            _fsm.GetState<GoToTargetState>().Target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            if (_stateNow != "GoToTargetState") _fsm.EnterIn<GoToTargetState>();
         }
     }
 
@@ -131,12 +136,7 @@ public abstract class BaseCube : BaseEntity
     protected IEnumerator DestroyAfterDelay()
     {
         yield return new WaitForSeconds(TheDarkGlobalMechanic.DestroyTime);
-        if (InTheLight)
-        {
-            _destroyedProcess = false;
-            yield break;
-        } 
-        BootStrap.PlayerInput.SelectingService.RemoveSelectedObject(gameObject);
+        BootStrap.PlayerInput.SelectingService.RemoveSelectedObject(_collisionColider);
         Destroy(gameObject); // ”ничтожаем объект, который вышел из коллайдера
     }
 
